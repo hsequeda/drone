@@ -64,6 +64,14 @@ func NewDrone(serial string, model DroneModel, weightLimit uint32, battery uint8
 	}, nil
 }
 
+// IsAvailable method returns if the current drone is available for load.
+func (d *Drone) IsAvailable() bool {
+	return (d.State == Idle ||
+		d.State == Loading) &&
+		d.BatteryCapacity > 25 &&
+		d.MedicationWeight() < d.WeightLimit
+}
+
 // AddMedications method adds a new medication to the Drone if it doesn't
 // exceed it WeightLimit.
 func (d *Drone) AddMedications(m Medication) error {
@@ -75,7 +83,7 @@ func (d *Drone) AddMedications(m Medication) error {
 		return ErrLowBattery
 	}
 
-	totalWeight := d.medicationWeight() + m.Weight
+	totalWeight := d.MedicationWeight() + m.Weight
 	if d.WeightLimit < totalWeight {
 		return ErrOverweight
 	}
@@ -84,7 +92,8 @@ func (d *Drone) AddMedications(m Medication) error {
 	return nil
 }
 
-func (d *Drone) medicationWeight() uint32 {
+// MedicationWeight method returns how many Weight is loading the drone.
+func (d *Drone) MedicationWeight() uint32 {
 	var w uint32
 	for _, m := range d.Medications {
 		w += m.Weight

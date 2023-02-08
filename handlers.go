@@ -8,19 +8,6 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
-type RegisterDroneDTO struct {
-	Serial      string     `json:"serial"`
-	Model       DroneModel `json:"model"`
-	WeightLimit uint32     `json:"weight_limit"`
-	Battery     uint8      `json:"battery"`
-}
-
-type MedicationDTO struct {
-	Name   string
-	Weight uint32
-	Code   string
-}
-
 type DroneController struct {
 	storage       *Storage
 	maxUploadSize int64
@@ -85,7 +72,7 @@ func (h *DroneController) loadDrone(w http.ResponseWriter, r *http.Request) {
 	}
 
 	encryptedDto := r.PostFormValue("data")
-	var dto MedicationDTO
+	var dto LoadMedicationDTO
 	if err = json.Unmarshal([]byte(encryptedDto), &dto); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -99,7 +86,12 @@ func (h *DroneController) loadDrone(w http.ResponseWriter, r *http.Request) {
 	droneSerial := chi.URLParam(r, "serial")
 	drone, err := h.storage.Drone(droneSerial)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		if err == ErrNotFound {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -113,13 +105,67 @@ func (h *DroneController) loadDrone(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *DroneController) getDroneMedications(w http.ResponseWriter, r *http.Request) {
-	panic("implement me!")
+	droneSerial := chi.URLParam(r, "serial")
+	d, err := h.storage.Drone(droneSerial)
+	if err != nil {
+		if err == ErrNotFound {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	medDTOs := make([]MedicationDTO, len(d.Medications))
+	for i, m := range d.Medications {
+		// NOTE: use value convertion because the fields match for now.
+		medDTOs[i] = MedicationDTO(m)
+	}
+
+	if err := json.NewEncoder(w).Encode(medDTOs); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 }
 
 func (h *DroneController) getAvailableDrones(w http.ResponseWriter, r *http.Request) {
-	panic("implement me!")
+	var availableDrones []AvailableDroneDTO
+	for _, d := range h.storage.Drones() {
+		if d.IsAvailable() {
+			availableDrones = append(availableDrones, AvailableDroneDTO{
+				Serial:          d.Serial,
+				Model:           d.Model,
+				WeightLimit:     d.WeightLimit,
+				BatteryCapacity: d.BatteryCapacity,
+				ConsumedWeight:  d.MedicationWeight(),
+				State:           d.State,
+			})
+		}
+	}
+
+	if err := json.NewEncoder(w).Encode(availableDrones); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 }
 
 func (h *DroneController) getDroneBatteryLevel(w http.ResponseWriter, r *http.Request) {
-	panic("implement me!")
+	droneSerial := chi.URLParam(r, "serial")
+	d, err := h.storage.Drone(droneSerial)
+	if err != nil {
+		if err == ErrNotFound {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	bc := DroneBatteryLevelDTO{BatteryLevel: d.BatteryCapacity}
+	if err := json.NewEncoder(w).Encode(bc); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 }

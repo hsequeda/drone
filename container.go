@@ -69,13 +69,13 @@ func (c *DroneContainer) V1Router() *chi.Mux {
 			middleware.Logger,
 			middleware.Recoverer,
 		)
-		c.v1router.Route("/drone", func(r chi.Router) {
-			r.Post("/", c.DroneController().registerADrone)
-			r.Route("/{serial}", func(r chi.Router) {
-				r.Put("/", c.DroneController().loadDrone)
-			})
+		c.v1router.Route("/", func(r chi.Router) {
+			r.Get("/drones", c.DroneController().getAvailableDrones)
+			r.Post("/drone", c.DroneController().registerADrone)
+			r.Put("/drone/{serial}", c.DroneController().loadDrone)
+			r.Get("/drone/{serial}/battery", c.DroneController().getDroneBatteryLevel)
+			r.Get("/drone/{serial}/medications", c.DroneController().getDroneMedications)
 		})
-
 	}
 
 	return c.v1router
