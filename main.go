@@ -7,18 +7,37 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strconv"
 	"time"
 
 	"github.com/go-chi/chi/v5"
 )
 
 func main() {
+	httpAddr, ok := os.LookupEnv("HTTP_SERVER_ADDR")
+	if !ok {
+		log.Fatalf("HTTP_SERVER_ADDR is empty")
+		return
+	}
+
+	uploadSizeStr, ok := os.LookupEnv("UPLOAD_SIZE")
+	if !ok {
+		log.Fatalf("UPLOAD_SIZE is empty")
+		return
+	}
+
+	uploadSize, err := strconv.ParseInt(uploadSizeStr, 10, 64)
+	if err != nil {
+		log.Fatalf("UPLOAD_SIZE need to be integer")
+		return
+	}
+
 	execute(NewDroneContainer(&Configuration{
 		HTTPServer: HTTPServerConfiguration{
-			Addr: ":4444",
+			Addr: httpAddr,
 		},
 		DroneController: DroneControllerConfiguration{
-			MaxUploadSize: 5 * (1024 * 1024),
+			MaxUploadSize: uploadSize * (1024 * 1024),
 		},
 	}))
 }
