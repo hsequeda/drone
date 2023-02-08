@@ -80,3 +80,75 @@ func TestNewDrone(t *testing.T) {
 		})
 	}
 }
+
+func TestAddMedicationToDrone(t *testing.T) {
+	om250g := Medication{
+		Name:   "Omeprazol-250g",
+		Weight: 250,
+		Code:   "OM_250",
+		Image:  "1023123asf",
+	}
+	testCases := []struct {
+		name             string
+		expectedErr      bool
+		droneMedications []Medication
+		droneBattery     uint8
+		droneState       DroneState
+		newMedication    Medication
+	}{
+		{
+			name:          "OK-Idle",
+			droneBattery:  80,
+			droneState:    Idle,
+			newMedication: om250g,
+		},
+		{
+			name:          "OK-Loading",
+			droneBattery:  80,
+			droneState:    Loading,
+			newMedication: om250g,
+		},
+		{
+			name:          "Err-InvalidState",
+			expectedErr:   true,
+			droneBattery:  80,
+			droneState:    Delivered,
+			newMedication: om250g,
+		},
+		{
+			name:          "Err-LowBattery",
+			droneBattery:  20,
+			expectedErr:   true,
+			droneState:    Loading,
+			newMedication: om250g,
+		},
+		{
+			name:             "Err-TooMuchWeight",
+			droneBattery:     80,
+			expectedErr:      true,
+			droneState:       Loading,
+			droneMedications: []Medication{om250g},
+			newMedication:    om250g,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			newDrone := Drone{
+				Serial:          "12345",
+				Model:           Cruiserweight,
+				WeightLimit:     400,
+				BatteryCapacity: tc.droneBattery,
+				State:           tc.droneState,
+				Medications:     tc.droneMedications,
+			}
+			err := newDrone.AddMedications(tc.newMedication)
+			if tc.expectedErr {
+				require.Error(t, err)
+				return
+			}
+
+			require.NoError(t, err)
+		})
+	}
+}
