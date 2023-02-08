@@ -1,7 +1,10 @@
-package main
+package drone
 
 import (
 	"net/http"
+	"os"
+	"path/filepath"
+	"strings"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -55,6 +58,16 @@ func (c *DroneContainer) Router() *chi.Mux {
 		c.router.Get("/health", func(w http.ResponseWriter, _ *http.Request) {
 			w.WriteHeader(http.StatusOK)
 		})
+		workDir, _ := os.Getwd()
+		filesDir := http.Dir(filepath.Join(workDir, "uploads"))
+		c.router.Get("/static/*", func(w http.ResponseWriter, r *http.Request) {
+			rctx := chi.RouteContext(r.Context())
+			pathPrefix := strings.TrimSuffix(rctx.RoutePattern(), "/*")
+			fs := http.StripPrefix(pathPrefix, http.FileServer(filesDir))
+			fs.ServeHTTP(w, r)
+		})
+
+		c.router.Mount("/debug", middleware.Profiler())
 	}
 
 	return c.router

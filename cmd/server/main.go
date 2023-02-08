@@ -8,9 +8,11 @@ import (
 	"os"
 	"os/signal"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/hsequeda/drone"
 )
 
 func main() {
@@ -32,17 +34,17 @@ func main() {
 		return
 	}
 
-	execute(NewDroneContainer(&Configuration{
-		HTTPServer: HTTPServerConfiguration{
+	execute(drone.NewDroneContainer(&drone.Configuration{
+		HTTPServer: drone.HTTPServerConfiguration{
 			Addr: httpAddr,
 		},
-		DroneController: DroneControllerConfiguration{
+		DroneController: drone.DroneControllerConfiguration{
 			MaxUploadSize: uploadSize * (1024 * 1024),
 		},
 	}))
 }
 
-func execute(c *DroneContainer) {
+func execute(c *drone.DroneContainer) {
 	debugRoutes(c.Router())
 	go func() {
 		if err := c.HTTPServer().ListenAndServe(); err != nil {
@@ -69,7 +71,9 @@ func execute(c *DroneContainer) {
 func debugRoutes(router *chi.Mux) {
 	println("\nRoutes defined in the server:")
 	chi.Walk(router, func(method string, route string, _ http.Handler, _ ...func(http.Handler) http.Handler) error {
-		fmt.Printf("%s %s\n", method, route)
+		if !strings.Contains(route, "debug") { // omit /debug
+			fmt.Printf("%s %s\n", method, route)
+		}
 		return nil
 	})
 }

@@ -3,7 +3,7 @@ export
 
 .PHONY: run
 run_server:
-	go run .
+	go run ./cmd/server
 
 
 .PHONY: test

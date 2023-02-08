@@ -1,4 +1,4 @@
-package main
+package drone
 
 // RegisterDroneDTO struct is the value passed in the body of POST /registerDrone.
 type RegisterDroneDTO struct {
