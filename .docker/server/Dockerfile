@@ -7,6 +7,6 @@ RUN CGO_ENABLED=0 go build -o /app ./cmd/server/
 
 FROM scratch
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
-COPY --from=builder /app/server /server
-CMD ["./server"]
+COPY --from=builder /app /app
+CMD ["./app"]
 

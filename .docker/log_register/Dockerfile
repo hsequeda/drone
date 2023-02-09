@@ -7,5 +7,5 @@ RUN CGO_ENABLED=0 go build -o /app ./cmd/log_register/
 
 FROM scratch
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
-COPY --from=builder /app/log_register /log_register
-CMD ["./log_register"]
+COPY --from=builder /app /app
+CMD ["./app"]

@@ -8,9 +8,9 @@ services:
     env_file:
       - .env
     volumes:
-      - ":/data"
-      - ":/logs"
-      - ":/uploads"
+      - "./data:/data"
+      - "./logs:/logs"
+      - ".uploads:/uploads"
     ports:
       - 8484:8484
   drone_log_register:
@@ -21,6 +21,6 @@ services:
     env_file:
       - .env
     volumes:
-      - ":/data"
-      - ":/logs"
-      - ":/uploads"
+      - "./data:/data"
+      - "./logs:/logs"
+      - "./uploads:/uploads"
