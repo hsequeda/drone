@@ -24,3 +24,8 @@ services:
       - "./data:/data"
       - "./logs:/logs"
       - "./uploads:/uploads"
+  tools:
+    build:
+      dockerfile: .docker/tools/Dockerfile
+      context: .
+    container_name: tools

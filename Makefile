@@ -5,14 +5,19 @@ export
 run_server:
 	go run ./cmd/server
 
+.PHONY: tools
+tools:
+	@docker-compose build -q tools
+
 .PHONY: run_log_register
 run_log_register:
 	go run ./cmd/log_register
 
 .PHONY: test
 test:
-	go test ./... -v --race
+	@docker-compose run --rm tools "go test ./... -v --race"
+
 
 .PHONY: lint
 lint:
-	golangci-lint run
+	@docker-compose run --rm tools "golangci-lint run"

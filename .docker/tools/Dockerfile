@@ -3,8 +3,3 @@ RUN apk --no-cache add ca-certificates
 RUN mkdir /app_dir
 COPY . /app_dir
 WORKDIR /app_dir
-RUN go mod tidy
-RUN go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.51.1
-
-
-
