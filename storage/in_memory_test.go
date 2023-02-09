@@ -11,9 +11,9 @@ import (
 )
 
 var (
-	// testStorage is a shared storage used to test the parallelism in the integration test.
-	testStorage     *InMemory
-	testStorageOnce sync.Once
+	// testInMemory is a shared storage used to test the parallelism in the integration test.
+	testInMemory     *InMemory
+	testInMemoryOnce sync.Once
 )
 
 var (
@@ -23,9 +23,9 @@ var (
 	savedDroneWithMedicationSerial = "50"
 )
 
-func TestSaveDrone(t *testing.T) {
+func TestInMemorySaveDrone(t *testing.T) {
 	t.Parallel()
-	s := initializeTestStorage(t)
+	s := initializeTestInMemory(t)
 	d := drone.Drone{
 		Serial:          "1",
 		Model:           drone.Lightweight,
@@ -39,9 +39,9 @@ func TestSaveDrone(t *testing.T) {
 	assert.Equal(t, d, savedDrone)
 }
 
-func TestAddMedicationDrone(t *testing.T) {
+func TestInMemoryAddMedicationDrone(t *testing.T) {
 	t.Parallel()
-	s := initializeTestStorage(t)
+	s := initializeTestInMemory(t)
 	val, _ := s.droneBySerial.Load(savedDroneWithMedicationSerial)
 	d := val.(drone.Drone)
 	// add medication
@@ -60,9 +60,9 @@ func TestAddMedicationDrone(t *testing.T) {
 	assert.Len(t, savedDrone.Medications, len(d.Medications))
 }
 
-func TestGetDrone(t *testing.T) {
+func TestInMemoryGetDrone(t *testing.T) {
 	t.Parallel()
-	s := initializeTestStorage(t)
+	s := initializeTestInMemory(t)
 	testCases := []struct {
 		name     string
 		notFound bool
@@ -95,21 +95,21 @@ func TestGetDrone(t *testing.T) {
 	}
 }
 
-func TestGetDrones(t *testing.T) {
+func TestInMemoryGetDrones(t *testing.T) {
 	t.Parallel()
-	s := initializeTestStorage(t)
+	s := initializeTestInMemory(t)
 	drones, err := s.Drones(context.Background())
 	require.NoError(t, err)
 	assert.GreaterOrEqual(t, len(drones), 2) // compares with preset number of drones (could be more)
 }
 
-func initializeTestStorage(t *testing.T) *InMemory {
+func initializeTestInMemory(t *testing.T) *InMemory {
 	t.Helper()
-	testStorageOnce.Do(func() {
+	testInMemoryOnce.Do(func() {
 		// setup storage
-		testStorage = NewInMemory()
+		testInMemory = NewInMemory()
 		// add preset data for test
-		testStorage.droneBySerial.Store(savedDroneSerial, drone.Drone{
+		testInMemory.droneBySerial.Store(savedDroneSerial, drone.Drone{
 			Serial:          savedDroneSerial,
 			Model:           drone.Lightweight,
 			WeightLimit:     300,
@@ -117,7 +117,7 @@ func initializeTestStorage(t *testing.T) *InMemory {
 			State:           drone.Idle,
 		})
 
-		testStorage.droneBySerial.Store(savedDroneWithMedicationSerial, drone.Drone{
+		testInMemory.droneBySerial.Store(savedDroneWithMedicationSerial, drone.Drone{
 			Serial:          savedDroneWithMedicationSerial,
 			Model:           drone.Heavyweight,
 			WeightLimit:     400,
@@ -134,5 +134,5 @@ func initializeTestStorage(t *testing.T) *InMemory {
 		})
 	})
 
-	return testStorage
+	return testInMemory
 }

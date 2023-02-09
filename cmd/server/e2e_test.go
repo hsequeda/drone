@@ -33,6 +33,7 @@ func TestE2E(t *testing.T) {
 	t.Run("TestAddMedication", s.TestAddMedication)
 	t.Run("TestGetDroneMedications", s.TestGetDroneMedications)
 	t.Run("TestGetAvailableDrones", s.TestGetAvailableDrones)
+	t.Run("TestGetDroneBatteryLevel", s.TestGetDroneBatteryLevel)
 }
 
 func (s *e2eSuite) TestRegisterADrone(t *testing.T) {
