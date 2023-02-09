@@ -10,7 +10,9 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/hsequeda/drone/drone"
 	"github.com/hsequeda/drone/storage"
+	"github.com/sdomino/scribble"
 )
 
 func main() {
@@ -34,11 +36,16 @@ func main() {
 
 	defer file.Close()
 
+	pwd, _ := os.Getwd()
+	db, err := scribble.New(filepath.Join(pwd, "/data"), nil)
+	if err != nil {
+		log.Fatal(err.Error())
+		return
+	}
+
+	st := storage.NewJSON(db)
 	log.SetFlags(log.Ldate | log.Ltime | log.Lmicroseconds)
 	log.SetOutput(file)
-
-	st := storage.NewInMemory()
-
 	println("Registering Drones battery level")
 
 	ctx, _ := signal.NotifyContext(context.Background(), os.Interrupt, os.Kill)
@@ -61,7 +68,7 @@ func main() {
 	println("server exited properly")
 }
 
-func execute(ctx context.Context, st *storage.InMemory) error {
+func execute(ctx context.Context, st drone.Storage) error {
 	drones, err := st.Drones(ctx)
 	if err != nil {
 		return errors.New("fetch error")

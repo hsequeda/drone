@@ -36,13 +36,9 @@ func main() {
 
 	pwd, _ := os.Getwd()
 	execute(NewDroneContainer(&Configuration{
-		HTTPServer: HTTPServerConfiguration{
-			Addr: httpAddr,
-		},
-		DroneController: DroneControllerConfiguration{
-			MaxUploadSize: uploadSize * (1024 * 1024),
-			UploadDir:     filepath.Join(pwd, "/uploads"),
-		},
+		HTTPServer:      HTTPServerConfiguration{Addr: httpAddr},
+		DroneController: DroneControllerConfiguration{MaxUploadSize: uploadSize * (1024 * 1024), UploadDir: filepath.Join(pwd, "/uploads")},
+		JSONStorage:     JSONStorageConfiguration{DatabasePath: filepath.Join(pwd, "/data")},
 	}))
 }
 

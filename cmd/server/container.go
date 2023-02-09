@@ -8,11 +8,13 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	dronehttp "github.com/hsequeda/drone/http"
 	"github.com/hsequeda/drone/storage"
+	"github.com/sdomino/scribble"
 )
 
 type Configuration struct {
 	HTTPServer      HTTPServerConfiguration
 	DroneController DroneControllerConfiguration
+	JSONStorage     JSONStorageConfiguration
 }
 
 type DroneControllerConfiguration struct {
@@ -24,13 +26,17 @@ type HTTPServerConfiguration struct {
 	Addr string
 }
 
+type JSONStorageConfiguration struct {
+	DatabasePath string
+}
+
 type DroneContainer struct {
 	config *Configuration
 
 	router          *chi.Mux
 	v1router        *chi.Mux
 	httpServer      *http.Server
-	storage         *storage.InMemory
+	jsonStorage     *storage.JSON
 	droneController *dronehttp.DroneController
 }
 
@@ -40,12 +46,17 @@ func NewDroneContainer(config *Configuration) *DroneContainer {
 	}
 }
 
-func (c *DroneContainer) Storage() *storage.InMemory {
-	if c.storage == nil {
-		c.storage = storage.NewInMemory()
+func (c *DroneContainer) Storage() *storage.JSON {
+	if c.jsonStorage == nil {
+		db, err := scribble.New(c.config.JSONStorage.DatabasePath, nil)
+		if err != nil {
+			panic(err)
+		}
+
+		c.jsonStorage = storage.NewJSON(db)
 	}
 
-	return c.storage
+	return c.jsonStorage
 }
 
 func (c *DroneContainer) Router() *chi.Mux {

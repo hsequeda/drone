@@ -9,6 +9,7 @@ import (
 	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"testing"
 
 	"github.com/hsequeda/drone/drone"
@@ -27,7 +28,10 @@ type e2eSuite struct {
 func TestE2E(t *testing.T) {
 	s := new(e2eSuite)
 	s.startServer(t)
-	t.Cleanup(func() { s.testServer.Close() })
+	t.Cleanup(func() {
+		s.testServer.Close()
+		os.RemoveAll("../../test/test_e2e_data") // clean storage
+	})
 
 	t.Run("TestRegisterDrone", s.TestRegisterADrone)
 	t.Run("TestAddMedication", s.TestAddMedication)
@@ -192,7 +196,7 @@ func (s *e2eSuite) TestGetDroneBatteryLevel(t *testing.T) {
 	var body dronehttp.DroneBatteryLevelDTO
 	err = json.NewDecoder(resp.Body).Decode(&body)
 	require.NoError(t, err)
-	assert.Equal(t, 80, body.BatteryLevel)
+	assert.Equal(t, uint8(80), body.BatteryLevel)
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
 }
 
@@ -207,6 +211,9 @@ func (s *e2eSuite) startServer(t *testing.T) {
 			DroneController: DroneControllerConfiguration{
 				MaxUploadSize: 5 * (1024 * 1024),
 				UploadDir:     "../../uploads",
+			},
+			JSONStorage: JSONStorageConfiguration{
+				DatabasePath: "../../test/test_e2e_data",
 			},
 		})
 

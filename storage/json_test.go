@@ -21,7 +21,7 @@ type jsonSuite struct {
 
 func TestJSON(t *testing.T) {
 	s := new(jsonSuite)
-	db, err := scribble.New("../test/data", nil)
+	db, err := scribble.New("../test/test_json_data", nil)
 	require.NoError(t, err)
 	s.db = db
 	s.storage = NewJSON(db)
@@ -44,7 +44,7 @@ func TestJSON(t *testing.T) {
 	s.db.Write(droneCollection, s.presetDrones[0].Serial, s.presetDrones[0])
 	s.db.Write(droneCollection, s.presetDrones[1].Serial, s.presetDrones[1])
 
-	t.Cleanup(func() { os.RemoveAll("../test/data") })
+	t.Cleanup(func() { os.RemoveAll("../test/test_json_data") })
 
 	t.Run("TestSaveDrone", s.TestSaveDrone)
 	t.Run("TestGetDrone", s.TestGetDrone)
