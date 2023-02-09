@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/hsequeda/drone"
+	"github.com/hsequeda/drone/drone"
 )
 
 // MedicationDTO struct is used in the response of GET /drone/{serial}/medications
@@ -17,7 +17,7 @@ type MedicationDTO struct {
 
 func (h *DroneController) GetDroneMedications(w http.ResponseWriter, r *http.Request) {
 	droneSerial := h.droneSerialFromRequest(r)
-	d, err := h.storage.Drone(droneSerial)
+	d, err := h.storage.Drone(r.Context(), droneSerial)
 	if err != nil {
 		if err == drone.ErrNotFound {
 			http.Error(w, err.Error(), http.StatusBadRequest)

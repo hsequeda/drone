@@ -1,8 +1,9 @@
-package drone
+package drone_test
 
 import (
 	"testing"
 
+	"github.com/hsequeda/drone/drone"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -17,7 +18,7 @@ func TestNewMedication(t *testing.T) {
 		medicationCode   string
 		medicationImage  string
 
-		expected Medication
+		expected drone.Medication
 	}{
 		{
 			name:             "OK: Simple name",
@@ -25,7 +26,7 @@ func TestNewMedication(t *testing.T) {
 			medicationWeight: 200,
 			medicationCode:   "OM_101",
 			medicationImage:  "/path/to/the_image",
-			expected: Medication{
+			expected: drone.Medication{
 				Name:   "Omeprazol",
 				Weight: 200,
 				Code:   "OM_101",
@@ -38,7 +39,7 @@ func TestNewMedication(t *testing.T) {
 			medicationWeight: 200,
 			medicationCode:   "OM_102",
 			medicationImage:  "/path/to/the_image",
-			expected: Medication{
+			expected: drone.Medication{
 				Name:   "Omeprazol-250ml",
 				Weight: 200,
 				Code:   "OM_102",
@@ -65,7 +66,7 @@ func TestNewMedication(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			newDrone, err := NewMedication(tc.medicationName, tc.medicationWeight, tc.medicationCode, tc.medicationImage)
+			newDrone, err := drone.NewMedication(tc.medicationName, tc.medicationWeight, tc.medicationCode, tc.medicationImage)
 			if tc.expectedErr {
 				require.Error(t, err)
 				return

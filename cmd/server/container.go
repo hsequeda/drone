@@ -6,8 +6,8 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
-	"github.com/hsequeda/drone"
 	dronehttp "github.com/hsequeda/drone/http"
+	"github.com/hsequeda/drone/storage"
 )
 
 type Configuration struct {
@@ -30,7 +30,7 @@ type DroneContainer struct {
 	router          *chi.Mux
 	v1router        *chi.Mux
 	httpServer      *http.Server
-	storage         *drone.Storage
+	storage         *storage.Storage
 	droneController *dronehttp.DroneController
 }
 
@@ -40,9 +40,9 @@ func NewDroneContainer(config *Configuration) *DroneContainer {
 	}
 }
 
-func (c *DroneContainer) Storage() *drone.Storage {
+func (c *DroneContainer) Storage() *storage.Storage {
 	if c.storage == nil {
-		c.storage = drone.NewStorage()
+		c.storage = storage.NewStorage()
 	}
 
 	return c.storage

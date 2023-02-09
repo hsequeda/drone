@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/hsequeda/drone"
+	"github.com/hsequeda/drone/drone"
 )
 
 // DroneBatteryLevelDTO struct is used in the response of GET /drone/{serial}/battery_level
@@ -14,7 +14,7 @@ type DroneBatteryLevelDTO struct {
 
 func (h *DroneController) GetDroneBatteryLevel(w http.ResponseWriter, r *http.Request) {
 	droneSerial := h.droneSerialFromRequest(r)
-	d, err := h.storage.Drone(droneSerial)
+	d, err := h.storage.Drone(r.Context(), droneSerial)
 	if err != nil {
 		if err == drone.ErrNotFound {
 			http.Error(w, err.Error(), http.StatusBadRequest)

@@ -1,9 +1,11 @@
-package drone
+package storage
 
 import (
+	"context"
 	"sync"
 	"testing"
 
+	"github.com/hsequeda/drone/drone"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -24,38 +26,38 @@ var (
 func TestSaveDrone(t *testing.T) {
 	t.Parallel()
 	s := initializeTestStorage(t)
-	drone := Drone{
+	d := drone.Drone{
 		Serial:          "1",
-		Model:           Lightweight,
+		Model:           drone.Lightweight,
 		WeightLimit:     300,
 		BatteryCapacity: 100,
-		State:           Idle,
+		State:           drone.Idle,
 	}
 
-	s.SaveDrone(drone)
-	savedDrone, _ := s.droneBySerial.Load(drone.Serial)
-	assert.Equal(t, drone, savedDrone)
+	s.SaveDrone(context.Background(), d)
+	savedDrone, _ := s.droneBySerial.Load(d.Serial)
+	assert.Equal(t, d, savedDrone)
 }
 
 func TestAddMedicationDrone(t *testing.T) {
 	t.Parallel()
 	s := initializeTestStorage(t)
-	d, _ := s.droneBySerial.Load(savedDroneWithMedicationSerial)
-	drone := d.(Drone)
+	val, _ := s.droneBySerial.Load(savedDroneWithMedicationSerial)
+	d := val.(drone.Drone)
 	// add medication
-	newMedication := Medication{
+	newMedication := drone.Medication{
 		Name:   "Aspirin",
 		Weight: 50,
 		Code:   "A01",
 		Image:  "other_path",
 	}
-	drone.Medications = append(drone.Medications, newMedication)
+	d.Medications = append(d.Medications, newMedication)
 	// initialize Drone
-	s.SaveDrone(drone)
-	sd, _ := s.droneBySerial.Load(drone.Serial)
-	savedDrone := sd.(Drone)
-	assert.Equal(t, drone, savedDrone)
-	assert.Len(t, savedDrone.Medications, len(drone.Medications))
+	s.SaveDrone(context.Background(), d)
+	sd, _ := s.droneBySerial.Load(d.Serial)
+	savedDrone := sd.(drone.Drone)
+	assert.Equal(t, d, savedDrone)
+	assert.Len(t, savedDrone.Medications, len(d.Medications))
 }
 
 func TestGetDrone(t *testing.T) {
@@ -81,10 +83,10 @@ func TestGetDrone(t *testing.T) {
 		tc := v
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
-			_, err := s.Drone(tc.serial)
+			_, err := s.Drone(context.Background(), tc.serial)
 			if tc.notFound {
 				require.Error(t, err)
-				assert.ErrorIs(t, err, ErrNotFound)
+				assert.ErrorIs(t, err, drone.ErrNotFound)
 				return
 			}
 
@@ -96,7 +98,9 @@ func TestGetDrone(t *testing.T) {
 func TestGetDrones(t *testing.T) {
 	t.Parallel()
 	s := initializeTestStorage(t)
-	assert.GreaterOrEqual(t, len(s.Drones()), 2) // compares with preset number of drones (could be more)
+	drones, err := s.Drones(context.Background())
+	require.NoError(t, err)
+	assert.GreaterOrEqual(t, len(drones), 2) // compares with preset number of drones (could be more)
 }
 
 func initializeTestStorage(t *testing.T) *Storage {
@@ -105,21 +109,21 @@ func initializeTestStorage(t *testing.T) *Storage {
 		// setup storage
 		testStorage = NewStorage()
 		// add preset data for test
-		testStorage.droneBySerial.Store(savedDroneSerial, Drone{
+		testStorage.droneBySerial.Store(savedDroneSerial, drone.Drone{
 			Serial:          savedDroneSerial,
-			Model:           Lightweight,
+			Model:           drone.Lightweight,
 			WeightLimit:     300,
 			BatteryCapacity: 100,
-			State:           Idle,
+			State:           drone.Idle,
 		})
 
-		testStorage.droneBySerial.Store(savedDroneWithMedicationSerial, Drone{
+		testStorage.droneBySerial.Store(savedDroneWithMedicationSerial, drone.Drone{
 			Serial:          savedDroneWithMedicationSerial,
-			Model:           Heavyweight,
+			Model:           drone.Heavyweight,
 			WeightLimit:     400,
 			BatteryCapacity: 90,
-			State:           Loaded,
-			Medications: []Medication{
+			State:           drone.Loaded,
+			Medications: []drone.Medication{
 				{
 					Name:   "Omeprazol-250ml",
 					Weight: 120,

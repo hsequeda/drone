@@ -5,7 +5,7 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/hsequeda/drone"
+	"github.com/hsequeda/drone/drone"
 )
 
 const (
@@ -70,7 +70,7 @@ func (h *DroneController) LoadDrone(w http.ResponseWriter, r *http.Request) {
 	}
 
 	droneSerial := h.droneSerialFromRequest(r)
-	d, err := h.storage.Drone(droneSerial)
+	d, err := h.storage.Drone(r.Context(), droneSerial)
 	if err != nil {
 		if err == drone.ErrNotFound {
 			http.Error(w, err.Error(), http.StatusBadRequest)
@@ -86,6 +86,9 @@ func (h *DroneController) LoadDrone(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.storage.SaveDrone(d)
+	if err := h.storage.SaveDrone(r.Context(), d); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 	json.NewEncoder(w).Encode("success")
 }

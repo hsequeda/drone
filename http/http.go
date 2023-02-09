@@ -1,16 +1,16 @@
 package http
 
 import (
-	"github.com/hsequeda/drone"
+	"github.com/hsequeda/drone/drone"
 )
 
 type DroneController struct {
-	storage       *drone.Storage
+	storage       drone.Storage
 	maxUploadSize int64
 	uploadDir     string
 }
 
-func NewHttpServer(storage *drone.Storage, maxUploadSize int64, uploadDir string) *DroneController {
+func NewHttpServer(storage drone.Storage, maxUploadSize int64, uploadDir string) *DroneController {
 	return &DroneController{
 		storage:       storage,
 		maxUploadSize: maxUploadSize,

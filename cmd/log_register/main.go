@@ -10,7 +10,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/hsequeda/drone"
+	"github.com/hsequeda/drone/storage"
 )
 
 func main() {
@@ -37,19 +37,19 @@ func main() {
 	log.SetFlags(log.Ldate | log.Ltime | log.Lmicroseconds)
 	log.SetOutput(file)
 
-	st := drone.NewStorage()
+	st := storage.NewStorage()
 
 	println("Registering Drones battery level")
 
-	execute(st)
 	ctx, _ := signal.NotifyContext(context.Background(), os.Interrupt, os.Kill)
+	execute(ctx, st)
 	exit := make(chan struct{})
 	go func() {
 		defer func() { exit <- struct{}{} }()
 		for {
 			select {
 			case <-time.Tick(time.Duration(interval) * time.Second):
-				execute(st)
+				execute(ctx, st)
 			case <-ctx.Done():
 				return
 			}
@@ -61,10 +61,17 @@ func main() {
 	println("server exited properly")
 }
 
-func execute(st *drone.Storage) {
-	for _, d := range st.Drones() {
+func execute(ctx context.Context, st *storage.Storage) error {
+	drones, err := st.Drones(ctx)
+	if err != nil {
+		return errors.New("fetch error")
+	}
+
+	for _, d := range drones {
 		log.Printf("serial(%s)-battery_level: %d%%", d.Serial, d.BatteryCapacity)
 	}
+
+	return nil
 }
 
 func createFile() (*os.File, error) {

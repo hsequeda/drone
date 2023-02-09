@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"io"
 	"io/ioutil"
@@ -10,7 +11,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/hsequeda/drone"
+	"github.com/hsequeda/drone/drone"
 	dronehttp "github.com/hsequeda/drone/http"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -51,7 +52,7 @@ func (s *e2eSuite) TestRegisterADrone(t *testing.T) {
 func (s *e2eSuite) TestAddMedication(t *testing.T) {
 	t.Parallel()
 	// setup storage data
-	s.container.Storage().SaveDrone(drone.Drone{
+	s.container.Storage().SaveDrone(context.Background(), drone.Drone{
 		Serial:          "100",
 		Model:           drone.Lightweight,
 		WeightLimit:     400,
@@ -92,7 +93,7 @@ func (s *e2eSuite) TestGetDroneMedications(t *testing.T) {
 	// setup storage data
 	m1 := drone.Medication{Name: "Omeprazol-250g", Weight: 250, Code: "OM_250", Image: "image_path"}
 	m2 := drone.Medication{Name: "Advil-250g", Weight: 500, Code: "AD_500", Image: "another_image_path"}
-	s.container.Storage().SaveDrone(drone.Drone{
+	s.container.Storage().SaveDrone(context.Background(), drone.Drone{
 		Serial:          "102",
 		Model:           drone.Lightweight,
 		WeightLimit:     400,
@@ -122,7 +123,7 @@ func (s *e2eSuite) TestGetAvailableDrones(t *testing.T) {
 		BatteryCapacity: 80,
 		State:           drone.Loading,
 	}
-	s.container.Storage().SaveDrone(availableD1)
+	s.container.Storage().SaveDrone(context.Background(), availableD1)
 	availableD2 := drone.Drone{
 		Serial:          "112",
 		Model:           drone.Cruiserweight,
@@ -130,7 +131,7 @@ func (s *e2eSuite) TestGetAvailableDrones(t *testing.T) {
 		BatteryCapacity: 50,
 		State:           drone.Idle,
 	}
-	s.container.Storage().SaveDrone(availableD2)
+	s.container.Storage().SaveDrone(context.Background(), availableD2)
 	unavailableD1 := drone.Drone{ // low battery
 		Serial:          "113",
 		Model:           drone.Cruiserweight,
@@ -138,7 +139,7 @@ func (s *e2eSuite) TestGetAvailableDrones(t *testing.T) {
 		BatteryCapacity: 10,
 		State:           drone.Idle,
 	}
-	s.container.Storage().SaveDrone(unavailableD1)
+	s.container.Storage().SaveDrone(context.Background(), unavailableD1)
 	unavailableD2 := drone.Drone{ // invalid state
 		Serial:          "114",
 		Model:           drone.Cruiserweight,
@@ -146,7 +147,7 @@ func (s *e2eSuite) TestGetAvailableDrones(t *testing.T) {
 		BatteryCapacity: 95,
 		State:           drone.Delivered,
 	}
-	s.container.Storage().SaveDrone(unavailableD2)
+	s.container.Storage().SaveDrone(context.Background(), unavailableD2)
 	unavailableD3 := drone.Drone{ // WeightLimit reached
 		Serial:          "115",
 		Model:           drone.Cruiserweight,
@@ -155,7 +156,7 @@ func (s *e2eSuite) TestGetAvailableDrones(t *testing.T) {
 		State:           drone.Loading,
 		Medications:     []drone.Medication{{Weight: 250}},
 	}
-	s.container.Storage().SaveDrone(unavailableD3)
+	s.container.Storage().SaveDrone(context.Background(), unavailableD3)
 
 	resp, err := http.Get(s.buildURL("/drones"))
 	require.NoError(t, err)
@@ -165,7 +166,7 @@ func (s *e2eSuite) TestGetAvailableDrones(t *testing.T) {
 	require.NoError(t, err)
 	assert.GreaterOrEqual(t, len(body), 2) // could be more than 3 (because we're sharing the Storage with the rest of the test)
 	for _, add := range body {
-		drone, err := s.container.Storage().Drone(add.Serial)
+		drone, err := s.container.Storage().Drone(context.Background(), add.Serial)
 		require.NoError(t, err)
 		s.assertAvailableDrone(t, drone, add)
 	}
@@ -183,7 +184,7 @@ func (s *e2eSuite) TestGetDroneBatteryLevel(t *testing.T) {
 		BatteryCapacity: 80,
 		State:           drone.Loading,
 	}
-	s.container.Storage().SaveDrone(d)
+	s.container.Storage().SaveDrone(context.Background(), d)
 
 	resp, err := http.Get(s.buildURL("/drone/1010/battery"))
 	require.NoError(t, err)
