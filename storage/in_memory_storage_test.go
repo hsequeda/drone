@@ -12,7 +12,7 @@ import (
 
 var (
 	// testStorage is a shared storage used to test the parallelism in the integration test.
-	testStorage     *Storage
+	testStorage     *InMemory
 	testStorageOnce sync.Once
 )
 
@@ -103,11 +103,11 @@ func TestGetDrones(t *testing.T) {
 	assert.GreaterOrEqual(t, len(drones), 2) // compares with preset number of drones (could be more)
 }
 
-func initializeTestStorage(t *testing.T) *Storage {
+func initializeTestStorage(t *testing.T) *InMemory {
 	t.Helper()
 	testStorageOnce.Do(func() {
 		// setup storage
-		testStorage = NewStorage()
+		testStorage = NewInMemory()
 		// add preset data for test
 		testStorage.droneBySerial.Store(savedDroneSerial, drone.Drone{
 			Serial:          savedDroneSerial,

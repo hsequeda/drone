@@ -30,7 +30,7 @@ type DroneContainer struct {
 	router          *chi.Mux
 	v1router        *chi.Mux
 	httpServer      *http.Server
-	storage         *storage.Storage
+	storage         *storage.InMemory
 	droneController *dronehttp.DroneController
 }
 
@@ -40,9 +40,9 @@ func NewDroneContainer(config *Configuration) *DroneContainer {
 	}
 }
 
-func (c *DroneContainer) Storage() *storage.Storage {
+func (c *DroneContainer) Storage() *storage.InMemory {
 	if c.storage == nil {
-		c.storage = storage.NewStorage()
+		c.storage = storage.NewInMemory()
 	}
 
 	return c.storage

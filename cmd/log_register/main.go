@@ -37,7 +37,7 @@ func main() {
 	log.SetFlags(log.Ldate | log.Ltime | log.Lmicroseconds)
 	log.SetOutput(file)
 
-	st := storage.NewStorage()
+	st := storage.NewInMemory()
 
 	println("Registering Drones battery level")
 
@@ -61,7 +61,7 @@ func main() {
 	println("server exited properly")
 }
 
-func execute(ctx context.Context, st *storage.Storage) error {
+func execute(ctx context.Context, st *storage.InMemory) error {
 	drones, err := st.Drones(ctx)
 	if err != nil {
 		return errors.New("fetch error")
