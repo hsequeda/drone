@@ -1,4 +1,4 @@
-package drone
+package http
 
 import (
 	"fmt"
@@ -7,12 +7,12 @@ import (
 	"time"
 )
 
-func saveFile(src io.Reader) (filename string, err error) {
-	if err = os.MkdirAll("./uploads", os.ModePerm); err != nil {
-		return "", fmt.Errorf("create './uploads' dir: %w", err)
+func (h *DroneController) saveFile(src io.Reader) (filename string, err error) {
+	if err = os.MkdirAll(h.uploadDir, os.ModePerm); err != nil {
+		return "", fmt.Errorf("create %q dir: %w", h.uploadDir, err)
 	}
 
-	filename = fmt.Sprintf("./uploads/%d", time.Now().UnixNano())
+	filename = fmt.Sprintf(h.uploadDir, time.Now().UnixNano())
 	dst, err := os.Create(filename)
 	if err != nil {
 		return "", fmt.Errorf("create new file: %w", err)

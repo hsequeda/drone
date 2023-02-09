@@ -7,12 +7,12 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/hsequeda/drone"
 )
 
 func main() {
@@ -34,17 +34,20 @@ func main() {
 		return
 	}
 
-	execute(drone.NewDroneContainer(&drone.Configuration{
-		HTTPServer: drone.HTTPServerConfiguration{
+	pwd, _ := os.Getwd()
+	execute(NewDroneContainer(&Configuration{
+		HTTPServer: HTTPServerConfiguration{
 			Addr: httpAddr,
 		},
-		DroneController: drone.DroneControllerConfiguration{
+		DroneController: DroneControllerConfiguration{
 			MaxUploadSize: uploadSize * (1024 * 1024),
+			UploadDir:     filepath.Join(pwd, "/uploads"),
 		},
 	}))
 }
 
-func execute(c *drone.DroneContainer) {
+func execute(c *DroneContainer) {
+	log.Printf("Running server in addr %s", c.config.HTTPServer.Addr)
 	debugRoutes(c.Router())
 	go func() {
 		if err := c.HTTPServer().ListenAndServe(); err != nil {
@@ -69,7 +72,7 @@ func execute(c *drone.DroneContainer) {
 }
 
 func debugRoutes(router *chi.Mux) {
-	println("\nRoutes defined in the server:")
+	log.Println("Routes defined in the server:")
 	chi.Walk(router, func(method string, route string, _ http.Handler, _ ...func(http.Handler) http.Handler) error {
 		if !strings.Contains(route, "debug") { // omit /debug
 			fmt.Printf("%s %s\n", method, route)

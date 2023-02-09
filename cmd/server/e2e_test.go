@@ -1,4 +1,4 @@
-package drone
+package main
 
 import (
 	"bytes"
@@ -10,6 +10,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/hsequeda/drone"
+	dronehttp "github.com/hsequeda/drone/http"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -34,9 +36,9 @@ func TestE2E(t *testing.T) {
 
 func (s *e2eSuite) TestRegisterADrone(t *testing.T) {
 	t.Parallel()
-	b, err := json.Marshal(RegisterDroneDTO{
+	b, err := json.Marshal(dronehttp.RegisterDroneDTO{
 		Serial:      "1",
-		Model:       Lightweight,
+		Model:       drone.Lightweight,
 		WeightLimit: 300,
 		Battery:     30,
 	})
@@ -49,15 +51,15 @@ func (s *e2eSuite) TestRegisterADrone(t *testing.T) {
 func (s *e2eSuite) TestAddMedication(t *testing.T) {
 	t.Parallel()
 	// setup storage data
-	s.container.Storage().SaveDrone(Drone{
+	s.container.Storage().SaveDrone(drone.Drone{
 		Serial:          "100",
-		Model:           Lightweight,
+		Model:           drone.Lightweight,
 		WeightLimit:     400,
 		BatteryCapacity: 80,
-		State:           Idle,
+		State:           drone.Idle,
 	})
 
-	b, err := json.Marshal(LoadMedicationDTO{
+	b, err := json.Marshal(dronehttp.LoadMedicationDTO{
 		Name:   "Omeprazol-250g",
 		Weight: 250,
 		Code:   "OM_250",
@@ -70,7 +72,7 @@ func (s *e2eSuite) TestAddMedication(t *testing.T) {
 	require.NoError(t, err)
 	mediaPart, err := writer.CreateFormFile("picture", "OM_250")
 	require.NoError(t, err)
-	mediaData, err := ioutil.ReadFile("./test/test_image.png")
+	mediaData, err := ioutil.ReadFile("../../test/test_image.png")
 	require.NoError(t, err)
 	_, err = io.Copy(mediaPart, bytes.NewReader(mediaData))
 	require.NoError(t, err)
@@ -88,20 +90,20 @@ func (s *e2eSuite) TestAddMedication(t *testing.T) {
 func (s *e2eSuite) TestGetDroneMedications(t *testing.T) {
 	t.Parallel()
 	// setup storage data
-	m1 := Medication{Name: "Omeprazol-250g", Weight: 250, Code: "OM_250", Image: "image_path"}
-	m2 := Medication{Name: "Advil-250g", Weight: 500, Code: "AD_500", Image: "another_image_path"}
-	s.container.Storage().SaveDrone(Drone{
+	m1 := drone.Medication{Name: "Omeprazol-250g", Weight: 250, Code: "OM_250", Image: "image_path"}
+	m2 := drone.Medication{Name: "Advil-250g", Weight: 500, Code: "AD_500", Image: "another_image_path"}
+	s.container.Storage().SaveDrone(drone.Drone{
 		Serial:          "102",
-		Model:           Lightweight,
+		Model:           drone.Lightweight,
 		WeightLimit:     400,
 		BatteryCapacity: 80,
-		State:           Idle,
-		Medications:     []Medication{m1, m2},
+		State:           drone.Idle,
+		Medications:     []drone.Medication{m1, m2},
 	})
 
 	resp, err := http.Get(s.buildURL("/drone/102/medications"))
 	require.NoError(t, err)
-	var body []MedicationDTO
+	var body []dronehttp.MedicationDTO
 	err = json.NewDecoder(resp.Body).Decode(&body)
 	require.NoError(t, err)
 	assert.Len(t, body, 2)
@@ -113,52 +115,52 @@ func (s *e2eSuite) TestGetDroneMedications(t *testing.T) {
 func (s *e2eSuite) TestGetAvailableDrones(t *testing.T) {
 	t.Parallel()
 	// setup storage data
-	availableD1 := Drone{
+	availableD1 := drone.Drone{
 		Serial:          "111",
-		Model:           Cruiserweight,
+		Model:           drone.Cruiserweight,
 		WeightLimit:     400,
 		BatteryCapacity: 80,
-		State:           Loading,
+		State:           drone.Loading,
 	}
 	s.container.Storage().SaveDrone(availableD1)
-	availableD2 := Drone{
+	availableD2 := drone.Drone{
 		Serial:          "112",
-		Model:           Cruiserweight,
+		Model:           drone.Cruiserweight,
 		WeightLimit:     200,
 		BatteryCapacity: 50,
-		State:           Idle,
+		State:           drone.Idle,
 	}
 	s.container.Storage().SaveDrone(availableD2)
-	unavailableD1 := Drone{ // low battery
+	unavailableD1 := drone.Drone{ // low battery
 		Serial:          "113",
-		Model:           Cruiserweight,
+		Model:           drone.Cruiserweight,
 		WeightLimit:     200,
 		BatteryCapacity: 10,
-		State:           Idle,
+		State:           drone.Idle,
 	}
 	s.container.Storage().SaveDrone(unavailableD1)
-	unavailableD2 := Drone{ // invalid state
+	unavailableD2 := drone.Drone{ // invalid state
 		Serial:          "114",
-		Model:           Cruiserweight,
+		Model:           drone.Cruiserweight,
 		WeightLimit:     200,
 		BatteryCapacity: 95,
-		State:           Delivered,
+		State:           drone.Delivered,
 	}
 	s.container.Storage().SaveDrone(unavailableD2)
-	unavailableD3 := Drone{ // WeightLimit reached
+	unavailableD3 := drone.Drone{ // WeightLimit reached
 		Serial:          "115",
-		Model:           Cruiserweight,
+		Model:           drone.Cruiserweight,
 		WeightLimit:     250,
 		BatteryCapacity: 95,
-		State:           Loading,
-		Medications:     []Medication{{Weight: 250}},
+		State:           drone.Loading,
+		Medications:     []drone.Medication{{Weight: 250}},
 	}
 	s.container.Storage().SaveDrone(unavailableD3)
 
 	resp, err := http.Get(s.buildURL("/drones"))
 	require.NoError(t, err)
 	require.NoError(t, err)
-	var body []AvailableDroneDTO
+	var body []dronehttp.AvailableDroneDTO
 	err = json.NewDecoder(resp.Body).Decode(&body)
 	require.NoError(t, err)
 	assert.GreaterOrEqual(t, len(body), 2) // could be more than 3 (because we're sharing the Storage with the rest of the test)
@@ -174,18 +176,18 @@ func (s *e2eSuite) TestGetAvailableDrones(t *testing.T) {
 func (s *e2eSuite) TestGetDroneBatteryLevel(t *testing.T) {
 	t.Parallel()
 	// setup storage data
-	drone := Drone{
+	d := drone.Drone{
 		Serial:          "1010",
-		Model:           Cruiserweight,
+		Model:           drone.Cruiserweight,
 		WeightLimit:     400,
 		BatteryCapacity: 80,
-		State:           Loading,
+		State:           drone.Loading,
 	}
-	s.container.Storage().SaveDrone(drone)
+	s.container.Storage().SaveDrone(d)
 
 	resp, err := http.Get(s.buildURL("/drone/1010/battery"))
 	require.NoError(t, err)
-	var body DroneBatteryLevelDTO
+	var body dronehttp.DroneBatteryLevelDTO
 	err = json.NewDecoder(resp.Body).Decode(&body)
 	require.NoError(t, err)
 	assert.Equal(t, 80, body.BatteryLevel)
@@ -202,13 +204,14 @@ func (s *e2eSuite) startServer(t *testing.T) {
 		&Configuration{
 			DroneController: DroneControllerConfiguration{
 				MaxUploadSize: 5 * (1024 * 1024),
+				UploadDir:     "~/tmp",
 			},
 		})
 
 	s.testServer = httptest.NewServer(s.container.Router())
 }
 
-func (s *e2eSuite) assertMedication(t *testing.T, expected Medication, actual MedicationDTO) bool {
+func (s *e2eSuite) assertMedication(t *testing.T, expected drone.Medication, actual dronehttp.MedicationDTO) bool {
 	t.Helper()
 	return assert.Equal(t, expected.Name, actual.Name) &&
 		assert.Equal(t, expected.Weight, actual.Weight) &&
@@ -216,7 +219,7 @@ func (s *e2eSuite) assertMedication(t *testing.T, expected Medication, actual Me
 		assert.Equal(t, expected.Image, actual.Image)
 }
 
-func (s *e2eSuite) assertAvailableDrone(t *testing.T, expected Drone, actual AvailableDroneDTO) bool {
+func (s *e2eSuite) assertAvailableDrone(t *testing.T, expected drone.Drone, actual dronehttp.AvailableDroneDTO) bool {
 	t.Helper()
 	return assert.Equal(t, expected.Model, actual.Model) &&
 		assert.Equal(t, expected.State, actual.State) &&

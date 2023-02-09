@@ -1,13 +1,13 @@
-package drone
+package main
 
 import (
 	"net/http"
-	"os"
-	"path/filepath"
 	"strings"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/hsequeda/drone"
+	dronehttp "github.com/hsequeda/drone/http"
 )
 
 type Configuration struct {
@@ -17,6 +17,7 @@ type Configuration struct {
 
 type DroneControllerConfiguration struct {
 	MaxUploadSize int64
+	UploadDir     string
 }
 
 type HTTPServerConfiguration struct {
@@ -29,8 +30,8 @@ type DroneContainer struct {
 	router          *chi.Mux
 	v1router        *chi.Mux
 	httpServer      *http.Server
-	storage         *Storage
-	droneController *DroneController
+	storage         *drone.Storage
+	droneController *dronehttp.DroneController
 }
 
 func NewDroneContainer(config *Configuration) *DroneContainer {
@@ -39,9 +40,9 @@ func NewDroneContainer(config *Configuration) *DroneContainer {
 	}
 }
 
-func (c *DroneContainer) Storage() *Storage {
+func (c *DroneContainer) Storage() *drone.Storage {
 	if c.storage == nil {
-		c.storage = NewStorage()
+		c.storage = drone.NewStorage()
 	}
 
 	return c.storage
@@ -58,8 +59,7 @@ func (c *DroneContainer) Router() *chi.Mux {
 		c.router.Get("/health", func(w http.ResponseWriter, _ *http.Request) {
 			w.WriteHeader(http.StatusOK)
 		})
-		workDir, _ := os.Getwd()
-		filesDir := http.Dir(filepath.Join(workDir, "uploads"))
+		filesDir := http.Dir(c.config.DroneController.UploadDir)
 		c.router.Get("/static/*", func(w http.ResponseWriter, r *http.Request) {
 			rctx := chi.RouteContext(r.Context())
 			pathPrefix := strings.TrimSuffix(rctx.RoutePattern(), "/*")
@@ -83,20 +83,20 @@ func (c *DroneContainer) V1Router() *chi.Mux {
 			middleware.Recoverer,
 		)
 		c.v1router.Route("/", func(r chi.Router) {
-			r.Get("/drones", c.DroneController().getAvailableDrones)
-			r.Post("/drone", c.DroneController().registerADrone)
-			r.Put("/drone/{serial}", c.DroneController().loadDrone)
-			r.Get("/drone/{serial}/battery", c.DroneController().getDroneBatteryLevel)
-			r.Get("/drone/{serial}/medications", c.DroneController().getDroneMedications)
+			r.Get("/drones", c.DroneController().GetAvailableDrones)
+			r.Post("/drone", c.DroneController().RegisterADrone)
+			r.Put("/drone/{serial}", c.DroneController().LoadDrone)
+			r.Get("/drone/{serial}/battery", c.DroneController().GetDroneBatteryLevel)
+			r.Get("/drone/{serial}/medications", c.DroneController().GetDroneMedications)
 		})
 	}
 
 	return c.v1router
 }
 
-func (c *DroneContainer) DroneController() *DroneController {
+func (c *DroneContainer) DroneController() *dronehttp.DroneController {
 	if c.droneController == nil {
-		c.droneController = NewHttpServer(c.Storage(), c.config.DroneController.MaxUploadSize)
+		c.droneController = dronehttp.NewHttpServer(c.Storage(), c.config.DroneController.MaxUploadSize, c.config.DroneController.UploadDir)
 	}
 
 	return c.droneController
