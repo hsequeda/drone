@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"errors"
-	"fmt"
 	"log"
 	"os"
 	"os/signal"
@@ -75,7 +74,9 @@ func createFile() (*os.File, error) {
 		return nil, errors.New("create /logs dir")
 	}
 
-	file, err := os.Create(fmt.Sprintf("%s/%d", dir, time.Now().UnixNano()))
+	randomName := strconv.FormatInt(time.Now().UnixNano(), 10)
+	filename := filepath.Join(dir, randomName)
+	file, err := os.Create(filename)
 	if err != nil {
 		return nil, errors.New("create log file")
 	}

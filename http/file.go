@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
+	"strconv"
 	"time"
 )
 
@@ -12,7 +14,8 @@ func (h *DroneController) saveFile(src io.Reader) (filename string, err error) {
 		return "", fmt.Errorf("create %q dir: %w", h.uploadDir, err)
 	}
 
-	filename = fmt.Sprintf(h.uploadDir, time.Now().UnixNano())
+	randomName := strconv.FormatInt(time.Now().UnixNano(), 10)
+	filename = filepath.Join(h.uploadDir, randomName)
 	dst, err := os.Create(filename)
 	if err != nil {
 		return "", fmt.Errorf("create new file: %w", err)

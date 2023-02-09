@@ -204,7 +204,7 @@ func (s *e2eSuite) startServer(t *testing.T) {
 		&Configuration{
 			DroneController: DroneControllerConfiguration{
 				MaxUploadSize: 5 * (1024 * 1024),
-				UploadDir:     "~/tmp",
+				UploadDir:     "../../uploads",
 			},
 		})
 
