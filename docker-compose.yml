@@ -1,0 +1,14 @@
+version: '3'
+services:
+  drone_server:
+    build: .
+    container_name: drone_server
+    env_file:
+      - .env
+    ports:
+      - 8484:8484
+  drone_log_register:
+    build: .
+    container_name: drone_log_register
+    env_file:
+      - .env
