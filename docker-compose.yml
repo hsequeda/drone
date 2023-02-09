@@ -1,14 +1,26 @@
 version: '3'
 services:
   drone_server:
-    build: .
+    build:
+      dockerfile: .docker/server/Dockerfile
+      context: .
     container_name: drone_server
     env_file:
       - .env
+    volumes:
+      - ":/data"
+      - ":/logs"
+      - ":/uploads"
     ports:
       - 8484:8484
   drone_log_register:
-    build: .
+    build:
+      dockerfile: .docker/log_register/Dockerfile
+      context: .
     container_name: drone_log_register
     env_file:
       - .env
+    volumes:
+      - ":/data"
+      - ":/logs"
+      - ":/uploads"

@@ -4,5 +4,5 @@
 	"WeightLimit": 300,
 	"BatteryCapacity": 30,
 	"State": 1,
-	"Medications": null
+	"Medications": [ ]
 }

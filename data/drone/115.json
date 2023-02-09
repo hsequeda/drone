@@ -4,12 +4,5 @@
 	"WeightLimit": 250,
 	"BatteryCapacity": 95,
 	"State": 2,
-	"Medications": [
-		{
-			"Name": "",
-			"Weight": 250,
-			"Code": "",
-			"Image": ""
-		}
-	]
+	"Medications": []
 }
