@@ -6,8 +6,8 @@ run_server:
 	@docker-compose run --rm drone_server
 
 .PHONY: tools
-tools:
-	@docker-compose build tools
+build:
+	@docker-compose build
 
 .PHONY: run_log_register
 run_log_register:
