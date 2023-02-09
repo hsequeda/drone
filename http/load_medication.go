@@ -2,6 +2,7 @@ package http
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 
@@ -38,9 +39,13 @@ func (h *DroneController) LoadDrone(w http.ResponseWriter, r *http.Request) {
 
 	defer func() { _ = file.Close() }()
 
-	buff := make([]byte, 512)
-	file.Read(buff)
-	filetype := http.DetectContentType(buff)
+	contentTypeBuff := make([]byte, 512)
+	_, err = file.Read(contentTypeBuff)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("read content-type buffer: %v", err), http.StatusBadRequest)
+		return
+	}
+	filetype := http.DetectContentType(contentTypeBuff)
 	if filetype != "image/jpeg" && filetype != "image/png" {
 		http.Error(w, "the provided file format is not allowed.", http.StatusBadRequest)
 		return
@@ -90,5 +95,5 @@ func (h *DroneController) LoadDrone(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	json.NewEncoder(w).Encode("success")
+	_ = json.NewEncoder(w).Encode("success")
 }

@@ -34,7 +34,8 @@ func TestInMemorySaveDrone(t *testing.T) {
 		State:           drone.Idle,
 	}
 
-	s.SaveDrone(context.Background(), d)
+	err := s.SaveDrone(context.Background(), d)
+	require.NoError(t, err)
 	savedDrone, _ := s.droneBySerial.Load(d.Serial)
 	assert.Equal(t, d, savedDrone)
 }
@@ -53,7 +54,8 @@ func TestInMemoryAddMedicationDrone(t *testing.T) {
 	}
 	d.Medications = append(d.Medications, newMedication)
 	// initialize Drone
-	s.SaveDrone(context.Background(), d)
+	err := s.SaveDrone(context.Background(), d)
+	require.NoError(t, err)
 	sd, _ := s.droneBySerial.Load(d.Serial)
 	savedDrone := sd.(drone.Drone)
 	assert.Equal(t, d, savedDrone)

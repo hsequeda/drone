@@ -41,8 +41,10 @@ func TestJSON(t *testing.T) {
 		},
 	)
 
-	s.db.Write(droneCollection, s.presetDrones[0].Serial, s.presetDrones[0])
-	s.db.Write(droneCollection, s.presetDrones[1].Serial, s.presetDrones[1])
+	err = s.db.Write(droneCollection, s.presetDrones[0].Serial, s.presetDrones[0])
+	require.NoError(t, err)
+	err = s.db.Write(droneCollection, s.presetDrones[1].Serial, s.presetDrones[1])
+	require.NoError(t, err)
 
 	t.Cleanup(func() { os.RemoveAll("../test/test_json_data") })
 

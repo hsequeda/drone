@@ -49,14 +49,18 @@ func main() {
 	println("Registering Drones battery level")
 
 	ctx, _ := signal.NotifyContext(context.Background(), os.Interrupt, os.Kill)
-	execute(ctx, st)
+	if err := execute(ctx, st); err != nil {
+		println(err.Error())
+	}
 	exit := make(chan struct{})
 	go func() {
 		defer func() { exit <- struct{}{} }()
 		for {
 			select {
 			case <-time.Tick(time.Duration(interval) * time.Second):
-				execute(ctx, st)
+				if err := execute(ctx, st); err != nil {
+					println(err.Error())
+				}
 			case <-ctx.Done():
 				return
 			}

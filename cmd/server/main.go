@@ -69,7 +69,7 @@ func execute(c *DroneContainer) {
 
 func debugRoutes(router *chi.Mux) {
 	log.Println("Routes defined in the server:")
-	chi.Walk(router, func(method string, route string, _ http.Handler, _ ...func(http.Handler) http.Handler) error {
+	_ = chi.Walk(router, func(method string, route string, _ http.Handler, _ ...func(http.Handler) http.Handler) error {
 		if !strings.Contains(route, "debug") { // omit /debug
 			fmt.Printf("%s %s\n", method, route)
 		}

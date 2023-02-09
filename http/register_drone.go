@@ -33,5 +33,5 @@ func (h *DroneController) RegisterADrone(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	json.NewEncoder(w).Encode("success")
+	_ = json.NewEncoder(w).Encode("success")
 }

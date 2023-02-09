@@ -5,7 +5,6 @@ import (
 	"context"
 	"encoding/json"
 	"io"
-	"io/ioutil"
 	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
@@ -57,13 +56,14 @@ func (s *e2eSuite) TestRegisterADrone(t *testing.T) {
 func (s *e2eSuite) TestAddMedication(t *testing.T) {
 	t.Parallel()
 	// setup storage data
-	s.container.Storage().SaveDrone(context.Background(), drone.Drone{
+	err := s.container.Storage().SaveDrone(context.Background(), drone.Drone{
 		Serial:          "100",
 		Model:           drone.Lightweight,
 		WeightLimit:     400,
 		BatteryCapacity: 80,
 		State:           drone.Idle,
 	})
+	require.NoError(t, err)
 
 	b, err := json.Marshal(dronehttp.LoadMedicationDTO{
 		Name:   "Omeprazol-250g",
@@ -78,7 +78,7 @@ func (s *e2eSuite) TestAddMedication(t *testing.T) {
 	require.NoError(t, err)
 	mediaPart, err := writer.CreateFormFile("picture", "OM_250")
 	require.NoError(t, err)
-	mediaData, err := ioutil.ReadFile("../../test/test_image.png")
+	mediaData, err := os.ReadFile("../../test/test_image.png")
 	require.NoError(t, err)
 	_, err = io.Copy(mediaPart, bytes.NewReader(mediaData))
 	require.NoError(t, err)
@@ -98,7 +98,7 @@ func (s *e2eSuite) TestGetDroneMedications(t *testing.T) {
 	// setup storage data
 	m1 := drone.Medication{Name: "Omeprazol-250g", Weight: 250, Code: "OM_250", Image: "image_path"}
 	m2 := drone.Medication{Name: "Advil-250g", Weight: 500, Code: "AD_500", Image: "another_image_path"}
-	s.container.Storage().SaveDrone(context.Background(), drone.Drone{
+	err := s.container.Storage().SaveDrone(context.Background(), drone.Drone{
 		Serial:          "102",
 		Model:           drone.Lightweight,
 		WeightLimit:     400,
@@ -106,6 +106,7 @@ func (s *e2eSuite) TestGetDroneMedications(t *testing.T) {
 		State:           drone.Idle,
 		Medications:     []drone.Medication{m1, m2},
 	})
+	require.NoError(t, err)
 
 	resp, err := http.Get(s.buildURL("/drone/102/medications"))
 	require.NoError(t, err)
@@ -128,7 +129,8 @@ func (s *e2eSuite) TestGetAvailableDrones(t *testing.T) {
 		BatteryCapacity: 80,
 		State:           drone.Loading,
 	}
-	s.container.Storage().SaveDrone(context.Background(), availableD1)
+	err := s.container.Storage().SaveDrone(context.Background(), availableD1)
+	require.NoError(t, err)
 	availableD2 := drone.Drone{
 		Serial:          "112",
 		Model:           drone.Cruiserweight,
@@ -136,7 +138,8 @@ func (s *e2eSuite) TestGetAvailableDrones(t *testing.T) {
 		BatteryCapacity: 50,
 		State:           drone.Idle,
 	}
-	s.container.Storage().SaveDrone(context.Background(), availableD2)
+	err = s.container.Storage().SaveDrone(context.Background(), availableD2)
+	require.NoError(t, err)
 	unavailableD1 := drone.Drone{ // low battery
 		Serial:          "113",
 		Model:           drone.Cruiserweight,
@@ -144,7 +147,8 @@ func (s *e2eSuite) TestGetAvailableDrones(t *testing.T) {
 		BatteryCapacity: 10,
 		State:           drone.Idle,
 	}
-	s.container.Storage().SaveDrone(context.Background(), unavailableD1)
+	err = s.container.Storage().SaveDrone(context.Background(), unavailableD1)
+	require.NoError(t, err)
 	unavailableD2 := drone.Drone{ // invalid state
 		Serial:          "114",
 		Model:           drone.Cruiserweight,
@@ -152,7 +156,8 @@ func (s *e2eSuite) TestGetAvailableDrones(t *testing.T) {
 		BatteryCapacity: 95,
 		State:           drone.Delivered,
 	}
-	s.container.Storage().SaveDrone(context.Background(), unavailableD2)
+	err = s.container.Storage().SaveDrone(context.Background(), unavailableD2)
+	require.NoError(t, err)
 	unavailableD3 := drone.Drone{ // WeightLimit reached
 		Serial:          "115",
 		Model:           drone.Cruiserweight,
@@ -161,7 +166,8 @@ func (s *e2eSuite) TestGetAvailableDrones(t *testing.T) {
 		State:           drone.Loading,
 		Medications:     []drone.Medication{{Weight: 250}},
 	}
-	s.container.Storage().SaveDrone(context.Background(), unavailableD3)
+	err = s.container.Storage().SaveDrone(context.Background(), unavailableD3)
+	require.NoError(t, err)
 
 	resp, err := http.Get(s.buildURL("/drones"))
 	require.NoError(t, err)
@@ -189,7 +195,8 @@ func (s *e2eSuite) TestGetDroneBatteryLevel(t *testing.T) {
 		BatteryCapacity: 80,
 		State:           drone.Loading,
 	}
-	s.container.Storage().SaveDrone(context.Background(), d)
+	err := s.container.Storage().SaveDrone(context.Background(), d)
+	require.NoError(t, err)
 
 	resp, err := http.Get(s.buildURL("/drone/1010/battery"))
 	require.NoError(t, err)
