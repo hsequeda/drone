@@ -1,0 +1,15 @@
+{
+	"Serial": "100",
+	"Model": 1,
+	"WeightLimit": 400,
+	"BatteryCapacity": 80,
+	"State": 1,
+	"Medications": [
+		{
+			"Name": "Omeprazol-250g",
+			"Weight": 250,
+			"Code": "OM_250",
+			"Image": "../../uploads/1675918895618660546"
+		}
+	]
+}
